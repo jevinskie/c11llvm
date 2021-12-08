@@ -52,7 +52,7 @@ using namespace llvm;
 #define DEBUG_TYPE "CDS"
 #include <llvm/IR/DebugLoc.h>
 
-static inline Value *getPosition( Instruction * I, auto &IRB, bool print = false)
+static inline Value *getPosition( Instruction * I, IRBuilder <> &IRB, bool print = false)
 {
 	const DebugLoc & debug_location = I->getDebugLoc ();
 	std::string position_string;

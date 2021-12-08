@@ -4,7 +4,8 @@ add_library(CDSPass MODULE
 )
 
 # Use C++11 to compile our pass (i.e., supply -std=c++11).
-set_property(TARGET CDSPass PROPERTY CXX_STANDARD 20)
+set_property(TARGET CDSPass PROPERTY CXX_STANDARD 14)
+set_property(TARGET CDSPass PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # LLVM is (typically) built with no C++ RTTI. We need to match that.
 set_target_properties(CDSPass PROPERTIES
