@@ -174,7 +174,11 @@ static Function * checkCDSPassInterfaceFunction(Constant *FuncOrBitcast) {
 	std::string Err;
 	raw_string_ostream Stream(Err);
 	Stream << "CDSPass interface function redefined: " << *FuncOrBitcast;
-	report_fatal_error(Err);
+	report_fatal_error(StringRef{Err});
+}
+
+static Function * checkCDSPassInterfaceFunction(FunctionCallee &&fc) {
+	return checkCDSPassInterfaceFunction(cast<Constant>(fc.getCallee()));
 }
 
 namespace {
@@ -230,8 +234,7 @@ StringRef CDSPass::getPassName() const {
 void CDSPass::initializeCallbacks(Module &M) {
 	LLVMContext &Ctx = M.getContext();
 	AttributeList Attr;
-	Attr = Attr.addAttribute(Ctx, AttributeList::FunctionIndex,
-			Attribute::NoUnwind);
+	Attr = Attr.addFnAttribute(Ctx, Attribute::NoUnwind);
 
 	Type * Int1Ty = Type::getInt1Ty(Ctx);
 	Type * Int32Ty = Type::getInt32Ty(Ctx);
@@ -292,7 +295,7 @@ void CDSPass::initializeCallbacks(Module &M) {
 								M.getOrInsertFunction(AtomicStoreName, 
 								Attr, VoidTy, PtrTy, Ty, OrdTy, Int8PtrTy));
 
-		for (int op = AtomicRMWInst::FIRST_BINOP; 
+		for (unsigned op = AtomicRMWInst::FIRST_BINOP; 
 			op <= AtomicRMWInst::LAST_BINOP; ++op) {
 			CDSAtomicRMW[op][i] = nullptr;
 			std::string NamePart;
@@ -485,7 +488,7 @@ void CDSPass::chooseInstructionsToInstrument(
 		Value *Addr = isa<StoreInst>(*I)
 			? cast<StoreInst>(I)->getPointerOperand()
 			: cast<LoadInst>(I)->getPointerOperand();
-		if (isa<AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
+		if (isa<AllocaInst>(getUnderlyingObject(Addr)) &&
 				!PointerMayBeCaptured(Addr, true, true)) {
 			// The variable is addressable but not captured, so it cannot be
 			// referenced from a different thread and participate in a data race
